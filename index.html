@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Maturity Assessment Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .accordion-content.active {
+            max-height: 500px;
+        }
+        
+        .section-card {
+            border-left: 5px solid;
+        }
+
+        .dark-blue {
+            color: #1e3a8a;
+        }
+
+        .bg-dark-blue {
+            background-color: #1e3a8a;
+        }
+
+        .border-dark-blue {
+            border-color: #1e3a8a;
+        }
+        
+        .rating-bar {
+            display: flex;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #e2e8f0;
+            margin-top: 8px;
+        }
+        
+        .rating-segment {
+            flex: 1;
+            margin-right: 2px;
+        }
+        
+        .rating-segment:last-child {
+            margin-right: 0;
+        }
+        
+        .rating-labels {
+            display: flex;
+            width: 100%;
+            margin-top: 4px;
+            font-size: 10px;
+            color: #64748b;
+        }
+        
+        .rating-label {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            cursor: help;
+        }
+        
+.overall-rating-bar {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #e2e8f0; /* plain gray base */
+}
+
+/* blue fill */
+.overall-rating-fill {
+  height: 100%;
+  background-color: #2563eb;
+  transition: width 0.4s ease-in-out;
+  position: relative;
+  z-index: 1;
+}
+
+/* white dividers on top */
+.overall-rating-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0; /* full overlay */
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent calc(25% - 1px),
+    white calc(25% - 1px),
+    white 25%
+  );
+  z-index: 2; /* sits above fill */
+  pointer-events: none; /* don’t block clicks */
+}
+
+
+        
+        .overall-rating-segment {
+            flex: 1;
+            margin-right: 3px;
+        }
+        
+        .overall-rating-segment:last-child {
+            margin-right: 0;
+        }
+        
+        .overall-rating-labels {
+            display: flex;
+            width: 100%;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .overall-rating-label {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            cursor: help;
+        }
+        
+       .category-rating-bar {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #e2e8f0; /* gray base */
+  margin: 12px 0;
+}
+
+/* Blue fill */
+.category-rating-fill {
+  height: 100%;
+  transition: width 0.4s ease-in-out;
+  position: relative;
+  z-index: 1;
+}
+
+/* White dividers on top */
+.category-rating-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent calc(25% - 1px), /* 4 equal parts = 5 segments */
+    white calc(25% - 1px),
+    white 25%
+  );
+  z-index: 2; /* dividers always above fill */
+  pointer-events: none;
+}
+
+        
+        .category-rating-segment:last-child {
+            margin-right: 0;
+        }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 180px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -90px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 11px;
+            font-weight: normal;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-6 py-12 max-w-5xl">
+         <header class="bg-white shadow flex justify-between items-center px-6 py-4 fixed top-0 left-0 right-0 z-50 mb-[100px]">
+
+    <div class="flex items-center space-x-4">
+      <img src="logo.png" alt="Logo" class="h-5 w-auto object-contain" />
+      <!-- <h1 class="text-xl font-bold">Assess.AI</h1> -->
+    </div>
+    <div class="flex items-center gap-2">
+
+  <div class="rounded-[100%] bg-[#2563EB] text-white p-2">LQ</div>
+   
+    <div class="">
+        <p class="text-sm">Leigh Quilliams</p>
+        <!-- <p class="text-gray-500 text-xs">Senior Marketing Manager</p> -->
+    </div>
+    </div>
+  </header>
+                <!-- Overall Digital Maturity Section -->
+        <section class="mb-12 bg-white rounded-xl shadow-md p-8 mt-[80px]">
+            <h2 class="text-2xl font-bold dark-blue mb-4">Overall Digital Maturity Level</h2>
+            
+       <div class="overall-rating-bar">
+  <div class="overall-rating-fill" style="width: 63%"></div>
+</div>
+            
+            <div class="overall-rating-labels mb-6">
+                <div class="overall-rating-label tooltip text-blue-600">
+                    Level 1
+                    <span class="tooltip-text">Starting the digital journey with basic understanding and limited implementation of digital tools.</span>
+                </div>
+                <div class="overall-rating-label tooltip text-blue-600">
+                    Level 2
+                    <span class="tooltip-text">Actively developing digital capabilities with moderate implementation and growing confidence.</span>
+                </div>
+                <div class="overall-rating-label tooltip text-gray-400">
+                    Level 3
+                    <span class="tooltip-text">Leveraging digital tools strategically with sophisticated implementation and driving innovation.</span>
+                </div>
+                <div class="overall-rating-label tooltip text-gray-400">
+                    Level 4
+                    <span class="tooltip-text">Leading with exemplary digital practices, setting standards, and continuously evolving capabilities.</span>
+                </div>
+            </div>
+            
+            <!-- Category Rating Bars -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <!-- Digital Adoption Rating -->
+                <div class="bg-white rounded-lg p-4 border border-gray-100">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Digital Adoption</h3>
+                    <div class="category-rating-bar">
+  <div class="category-rating-fill bg-[#2563eb]" style="width: 55%"></div>
+</div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span class="tooltip">
+                            Level 1
+                            <span class="tooltip-text">Starting to adopt digital tools with minimal integration into operations.</span>
+                        </span>
+                        <span class="font-medium text-gray-500">Level 2</span>
+                        <span class="font-medium text-blue-600">Level 3</span>
+                        <span class="tooltip">
+                            Level 4
+                            <span class="tooltip-text">Exemplary adoption with seamless integration and continuous optimization.</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Digital Readiness Rating -->
+                <div class="bg-white rounded-lg p-4 border border-gray-100">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Digital Readiness</h3>
+                     <div class="category-rating-bar">
+  <div class="category-rating-fill bg-green-600" style="width: 63%"></div>
+</div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span class="tooltip">
+                            Level 1
+                            <span class="tooltip-text">Basic technical skills with limited understanding of digital concepts.</span>
+                        </span>
+                        <span class="font-medium text-gray-500">Level 2</span>
+                        <span class="font-medium text-green-600">Level 3</span>
+                        <span class="tooltip">
+                            Level 4
+                            <span class="tooltip-text">Expert technical proficiency with comprehensive digital literacy and leadership.</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Usage Behaviors Rating -->
+                <div class="bg-white rounded-lg p-4 border border-gray-100">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Usage Behaviors</h3>
+                     <div class="category-rating-bar">
+  <div class="category-rating-fill bg-purple-600" style="width: 75%"></div>
+</div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span class="tooltip">
+                            Level 1
+                            <span class="tooltip-text">Inconsistent usage with minimal integration into workflows.</span>
+                        </span>
+                        <span class="font-medium text-gray-500">Level 2</span>
+                         <span class="font-medium text-purple-600">Level 3</span>
+                        <span class="tooltip">
+                            Level 4
+                            <span class="tooltip-text">Optimized usage patterns with full integration and continuous improvement.</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4 text-gray-600">
+                <p>You are demonstrating strong progress in your digital maturity journey by consistently embracing tools across planning, engagement, and insights. You show confidence in using VAE to tailor customer interactions and track engagement, while dashboards and IFT help you identify prescribing trends and shape well-informed call objectives. Your curiosity and willingness to experiment with new tools, like practicing extensively with CLM and exploring hidden functionalities, reflect adaptability and technical confidence. You also contribute to your team’s growth by sharing discoveries during calls, which inspires colleagues and helps spread enthusiasm for digital adoption.</p>
+                
+                <p>To further strengthen your impact, you can build on these strong practices by moving from individual excellence to more structured, team-level influence. This means formalizing how you share best practices, developing ways to integrate insights across multiple tools, and taking a proactive role in coaching peers. By focusing on consistency, efficiency, and collective readiness, you will not only deepen your own strategic integration but also foster a stronger culture of digital adoption across your team. This shift will help you overcome challenges such as tool complexity and ensure that your digital practices drive long-term organizational value.</p>
+            </div>
+        </section>
+        
+        <!-- Digital Adoption Section -->
+        <section class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold dark-blue">Digital Adoption</h2>
+                <p class="text-gray-500 mt-2">Assessment of how well digital tools and platforms have been integrated into daily operations.</p>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Accordion 1 -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Strategic Alignment</h3>
+                                <span class="text-sm font-medium text-blue-600">Level 2</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Limited alignment between digital initiatives and strategic goals.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Growing alignment with some digital initiatives supporting strategic objectives.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">Strong alignment with most digital initiatives directly supporting strategic goals.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Perfect alignment with all digital initiatives integrated into strategic planning.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Understanding of why digital adoption is important for the role and customers</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 2 (Aligns Digital Priorities with Goals) in Strategic Alignment. At this level, you effectively use digital tools such as VAE, CLM, IFT, and dashboards to align with customer needs and business objectives. For example, you used VAE to provide clinical data and track engagement, and you leverage dashboard insights to identify prescribing trends and adjust your approach. This shows you view digital tools as clear business enablers. To progress to Level 3, focus on integrating these tools into a broader strategic framework by proactively planning long-term digital engagement approaches and formalizing how you share best practices with your team. This will help you evolve from effective alignment to driving forward-looking digital strategy.</p>
+                                </div>
+                               
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accordion 2 -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Change Readiness & Trust</h3>
+                                <span class="text-sm font-medium text-blue-600">Level 3</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Resistant to change with minimal adaptation to digital transformation.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Accepting of change with moderate adaptation to digital transformation.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">Embracing change with proactive adaptation to digital transformation.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Driving change with leadership in digital transformation initiatives.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Willingness to embrace new digital tools, platforms, and processes; reflects openness to change and belief in the value of digital transformation</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 3 (Advocates for Digital-First Approach) in Change Readiness & Trust. At this level, you demonstrate strong willingness to embrace new digital tools and actively seek out opportunities to integrate them into your work. For example, you used VAE to meet customer needs confidently, practiced extensively with CLM to ensure smooth customer interactions, and regularly explore new functionalities to optimize usage. Your openness and intellectual curiosity help you stay ahead of change and you naturally share learnings with colleagues, sparking team-wide enthusiasm. To advance to Level 4, focus on taking a more structured role in coaching peers and formally driving team readiness for digital transformation, fostering collective trust in new platforms.</p>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            
+                
+                <!-- Accordion 4 (Moved from Digital Readiness) -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Risk Tolerance</h3>
+                                <span class="text-sm font-medium text-blue-600">Level 2</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-blue-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Very low risk tolerance with strong preference for proven solutions only.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Moderate risk tolerance with willingness to try established but new-to-you solutions.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">High risk tolerance with structured approach to experimentation and innovation.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Optimal risk management with balanced portfolio of proven and innovative approaches.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Confidence in managing risks when using digital tools, including applying compliance and data privacy principles, and adopting new tools without prior benchmarks</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 2 (Understands and Applies Compliance Principles) in Risk Tolerance. At this level, you show awareness of risks linked to digital tools and take steps to manage them responsibly. For example, you identified potential issues with CLM impacting customer experience but addressed this by practicing extensively before engaging with HCPs. This reflects good application of compliance principles and a balanced approach to risk. To move toward Level 3, focus on developing deeper fluency in compliance and data privacy principles, and proactively identifying risks across multiple tools and scenarios. By integrating risk considerations into your planning and sharing approaches with peers, you can evolve from reactive management to proactive digital risk leadership.</p>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Digital Readiness Section -->
+        <section class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold dark-blue">Digital Readiness</h2>
+                <p class="text-gray-500 mt-2">Evaluation of preparedness for digital transformation and ability to adapt to new technologies.</p>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Accordion 1 -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Technical Proficiency</h3>
+                                <span class="text-sm font-medium text-green-600">Level 3</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-green-600"></div>
+                                <div class="rating-segment bg-green-600"></div>
+                                <div class="rating-segment bg-green-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Basic technical skills with limited ability to use digital tools.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Moderate technical skills with ability to use common digital tools effectively.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">Advanced technical skills with ability to use complex digital tools and troubleshoot issues.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Expert technical skills with ability to optimize and innovate with digital tools.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Ability to confidently and efficiently use digital tools. platforms, and systems required in the field</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 3 (Uses Advanced Features and Coaches Others) in Technical Proficiency. You show confidence and independence in mastering tools such as VAE, CLM, dashboards, and IFT, using advanced features like engagement tracking and personalized messaging. Your learning style—exploring and experimenting with new functionalities—helps you become proficient quickly, as seen in how you optimized CLM through extensive practice. You also share valuable discoveries with colleagues in team calls, sparking adoption and enthusiasm. To reach Level 4, focus on moving beyond organic sharing to structured guidance. Creating practical tips, resources, or training moments for colleagues will allow you to formalize your coaching and drive team-wide efficiency in the effective use of digital tools.</p>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accordion 2 -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Digital Literacy</h3>
+                                <span class="text-sm font-medium text-green-600">Level 2</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-green-600"></div>
+                                <div class="rating-segment bg-green-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Basic understanding of digital concepts with limited vocabulary.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Moderate understanding of digital concepts with growing vocabulary.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">Advanced understanding of digital concepts with comprehensive vocabulary.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Expert understanding of digital concepts with ability to educate others.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Understand, interpret, and apply digital concepts, data, and terminology to make informed decisions</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 2 (Working Knowledge and Application of Metrics) in Digital Literacy. At this level, you demonstrate the ability to interpret key digital metrics and apply them to shape your approach. For example, you used the Devo dashboard to identify accelerating prescribing trends and acted to capture more market share, and you monitor VAE engagement and sample usage to adjust strategies with HCPs. This shows that you are confident in applying digital insights to make informed decisions. To move toward Level 3, focus on deepening your fluency with digital frameworks by synthesizing insights from multiple tools together and developing the ability to explain digital concepts to others. This will strengthen both your strategic decision-making and your role as a peer coach.</p>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Usage Behaviors Section -->
+        <section class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold dark-blue">Usage Behaviors</h2>
+                <p class="text-gray-500 mt-2">Analysis of how digital tools are actually used within the organization.</p>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Accordion 1 -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Operational Integration</h3>
+                                <span class="text-sm font-medium text-purple-600">Level 3</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-purple-600"></div>
+                                <div class="rating-segment bg-purple-600"></div>
+                                <div class="rating-segment bg-purple-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Minimal integration with siloed systems and manual processes.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Moderate integration with some connected systems but still some manual handoffs.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">Strong integration with mostly connected systems and few manual handoffs.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Seamless integration with fully connected systems and automated workflows.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Frequency, consistency, and purposefulness of digital tool usage in day-to-day work</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 3 (Deep Integration into Workflow) in Operational Integration. At this level, you consistently and purposefully use a range of digital tools in your daily work. For example, you combine IFT insights and prescribing trends from dashboards to plan customer calls and use VAE to track engagement for effective follow-ups. You also practice extensively with CLM to ensure a seamless customer experience, showing deliberate integration of digital tools into your workflow. In addition, your curiosity allows you to uncover new functionalities and share discoveries with peers. To progress to Level 4, focus on formalizing and scaling your impact by creating structured best practices, recommending workflow optimizations, and exploring smart integrations or automation to improve team-wide efficiency.</p>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accordion 2 -->
+                <div class="section-card border-dark-blue bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="accordion-header cursor-pointer p-6 flex justify-between items-center hover:bg-gray-50">
+                        <div class="w-full pr-8">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-medium dark-blue">Strategic Integration</h3>
+                                <span class="text-sm font-medium text-purple-600">Level 3</span>
+                            </div>
+                            <div class="rating-bar">
+                                <div class="rating-segment bg-purple-600"></div>
+                                <div class="rating-segment bg-purple-600"></div>
+                                <div class="rating-segment bg-purple-600"></div>
+                                <div class="rating-segment bg-gray-200"></div>
+                            </div>
+                            <div class="rating-labels">
+                                <div class="rating-label tooltip">
+                                    Level 1
+                                    <span class="tooltip-text">Inconsistent and infrequent use of digital tools.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 2
+                                    <span class="tooltip-text">Somewhat consistent and regular use of digital tools.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 3
+                                    <span class="tooltip-text">Highly consistent and frequent use of digital tools.</span>
+                                </div>
+                                <div class="rating-label tooltip">
+                                    Level 4
+                                    <span class="tooltip-text">Optimized and habitual use of digital tools with continuous improvement.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow w-5 h-5 text-gray-400 transform transition-transform duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-white p-0">
+                        <div class="p-6 border-t border-gray-100">
+                            <div class="mb-6">
+                                <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Definition:</h4>
+                                <p class="text-gray-600">Intentional use of digital tools to advance organizational goals and create lasting value for customers</p>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-700 mb-2 text-sm uppercase tracking-wider">Overview:</h4>
+                                    <p class="text-gray-600">You are currently operating at Level 3 (Consistent, Strategic Use of Digital Tools) in Strategic Integration. At this level, you demonstrate purposeful alignment of digital tools with customer strategy and organizational objectives. For example, you use VAE to personalize content, track customer engagement, and follow up effectively. You also integrate IFT and Devo dashboards to review prescribing trends and customer activity, shaping targeted call objectives and identifying growth opportunities. This shows you are embedding digital use into your long-term approach, not just immediate tasks. To progress to Level 4, focus on moving from individual application to team-level impact—formally mentoring colleagues, creating structured best practices, and fostering a culture of strategic digital adoption across your team or function.</p>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+       
+        
+        <footer class="text-center text-gray-400 text-sm mt-16 pb-8">
+            <p>Digital Maturity Assessment Report | Confidential</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const arrow = this.querySelector('.accordion-arrow');
+                    
+                    // Toggle active class
+                    content.classList.toggle('active');
+                    
+                    // Rotate arrow
+                    if (content.classList.contains('active')) {
+                        arrow.style.transform = 'rotate(180deg)';
+                    } else {
+                        arrow.style.transform = 'rotate(0)';
+                    }
+                });
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964aa0ee725c2247',t:'MTc1MzQzNTcyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
